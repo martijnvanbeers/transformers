@@ -12,7 +12,7 @@ on:
       - check_example_ci
 
 env:
-  # TRANSFORMERS_IS_CI: yes
+  TRANSFORMERS_IS_CI: yes
   #OMP_NUM_THREADS: 8
   #MKL_NUM_THREADS: 8
   RUN_SLOW: yes
