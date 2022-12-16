@@ -69,7 +69,8 @@ jobs:
     runs-on: ${{ format('{0}-{1}', matrix.machine_type, 'docker') }}
     container:
       image: huggingface/transformers-all-latest-gpu
-      options: --gpus 0 --shm-size "16gb" --ipc host -v /mnt/cache/.cache/huggingface:/mnt/cache/
+      # options: --gpus 0 --shm-size "16gb" --ipc host -v /mnt/cache/.cache/huggingface:/mnt/cache/
+      options: --gpus 0 --shm-size "16gb" --ipc host
     needs: setup
     steps:
       - name: Update clone
@@ -93,4 +94,4 @@ jobs:
         working-directory: /transformers
         run: |
           python3 -m pytest -v examples/pytorch/test_accelerate_examples.py::ExamplesTestsNoTrainer::test_run_image_classification_no_trainer
-          python3 -m pytest -v examples/pytorch/test_accelerate_examples.py::ExamplesTestsNoTrainer::test_run_semantic_segmentation_no_trainer
+
