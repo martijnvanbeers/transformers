@@ -264,6 +264,7 @@ class BertSelfAttention(nn.Module):
         encoder_attention_mask=None,
         past_key_value=None,
         output_attentions=False,
+        zero_value_index=None,
     ):
         mixed_query_layer = self.query(hidden_states)
 
@@ -337,6 +338,11 @@ class BertSelfAttention(nn.Module):
         if head_mask is not None:
             attention_probs = attention_probs * head_mask
 
+        ## Added by Hosein
+        if zero_value_index is not None: # zeroing value vectors corresponding to the given token index
+            value_layer[:, :, zero_value_index] = torch.zeros_like(value_layer[:, :, zero_value_index])
+        ##
+
         context_layer = torch.matmul(attention_probs, value_layer)
 
         context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
@@ -398,6 +404,7 @@ class BertAttention(nn.Module):
         encoder_attention_mask=None,
         past_key_value=None,
         output_attentions=False,
+        zero_value_index=None,
     ):
         self_outputs = self.self(
             hidden_states,
@@ -407,6 +414,7 @@ class BertAttention(nn.Module):
             encoder_attention_mask,
             past_key_value,
             output_attentions,
+            zero_value_index,
         )
         attention_output = self.output(self_outputs[0], hidden_states)
         outputs = (attention_output,) + self_outputs[1:]  # add attentions if we output them
@@ -466,6 +474,7 @@ class BertLayer(nn.Module):
         encoder_attention_mask=None,
         past_key_value=None,
         output_attentions=False,
+        zero_value_index=None,
     ):
         # decoder uni-directional self-attention cached key/values tuple is at positions 1,2
         self_attn_past_key_value = past_key_value[:2] if past_key_value is not None else None
@@ -474,6 +483,7 @@ class BertLayer(nn.Module):
             attention_mask,
             head_mask,
             output_attentions=output_attentions,
+            zero_value_index=zero_value_index,
             past_key_value=self_attn_past_key_value,
         )
         attention_output = self_attention_outputs[0]
