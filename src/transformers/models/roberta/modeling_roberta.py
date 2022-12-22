@@ -167,6 +167,7 @@ class RobertaSelfAttention(nn.Module):
                 f"heads ({config.num_attention_heads})"
             )
 
+        self.attentions_with_qk = getattr(config, "attentions_with_qk", False)
         self.num_attention_heads = config.num_attention_heads
         self.attention_head_size = int(config.hidden_size / config.num_attention_heads)
         self.all_head_size = self.num_attention_heads * self.attention_head_size
@@ -278,7 +279,17 @@ class RobertaSelfAttention(nn.Module):
         new_context_layer_shape = context_layer.size()[:-2] + (self.all_head_size,)
         context_layer = context_layer.view(*new_context_layer_shape)
 
-        outputs = (context_layer, attention_probs) if output_attentions else (context_layer,)
+        if self.attentions_with_qk:
+            attn_data = {
+                    'attn': attention_probs,
+                    'queries': query_layer,
+                    'keys': key_layer,
+                }
+            outputs = (context_layer, attn_data,)
+        elif output_attentions:
+            outputs = (context_layer, attention_probs,)
+        else:
+            outputs = (context_layer,)
 
         if self.is_decoder:
             outputs = outputs + (past_key_value,)
