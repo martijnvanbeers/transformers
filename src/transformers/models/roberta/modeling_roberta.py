@@ -185,6 +185,24 @@ class RobertaSelfAttention(nn.Module):
 
         self.is_decoder = config.is_decoder
 
+    def get_attn(self):
+        return self.attn
+
+    def save_attn(self, attn):
+        self.attn = attn
+
+    def save_attn_cam(self, cam):
+        self.attn_cam = cam
+
+    def get_attn_cam(self):
+        return self.attn_cam
+
+    def save_attn_gradients(self, attn_gradients):
+        self.attn_gradients = attn_gradients
+
+    def get_attn_gradients(self):
+        return self.attn_gradients
+
     def transpose_for_scores(self, x):
         new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
         x = x.view(*new_x_shape)
@@ -264,6 +282,10 @@ class RobertaSelfAttention(nn.Module):
 
         # Normalize the attention scores to probabilities.
         attention_probs = nn.functional.softmax(attention_scores, dim=-1)
+
+        self.save_attn(attention_probs)
+        if attention_probs.requires_grad:
+            attention_probs.register_hook(self.save_attn_gradients)
 
         # This is actually dropping out entire tokens to attend to, which might
         # seem a bit unusual, but is taken from the original Transformer paper.
